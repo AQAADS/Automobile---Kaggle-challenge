@@ -1,0 +1,77 @@
+#used Linear Regression
+import numpy as np 
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+data = pd.read_csv('/kaggle/input/automobile-dataset/Automobile_data.csv')
+data.head()
+print("Dataset size")
+print("Rows {} Columns {}".format(data.shape[0], data.shape[1]))
+print("Columns and data types")
+pd.DataFrame(data.dtypes).rename(columns = {0:'dtype'})
+print('Rows     :',data.shape[0])
+print('Columns  :',data.shape[1])
+print('\nFeatures :\n     :',data.columns.tolist())
+print('\nMissing values    :',data.isnull().values.sum())
+print('\nUnique values :  \n',data.nunique())
+print('Car makers in the data set are',data['make'].unique())
+
+#have identified the missing values and replaced them with int values
+
+total = data.isnull().sum().sort_values(ascending=False)
+percent = ((data.isnull().sum())*100)/data.isnull().count().sort_values(ascending=False)
+missing_data = pd.concat([total, percent], axis=1, keys=['Total','Percent'], sort=False).sort_values('Total', ascending=False)
+missing_data.head(40)
+
+a=data[data['normalized-losses']!='?']
+b=(a['normalized-losses'].astype(int)).mean()
+data['normalized-losses']=data['normalized-losses'].replace('?',b).astype(int)
+
+a=data[data['body-style']=='sedan']
+a['num-of-doors'].value_counts()
+a=data['num-of-doors'].map({'two':2,'four':4,'?':4})
+data['num-of-doors']=a
+
+a=data[data['price']!='?']
+b=(a['price'].astype(int)).mean()
+data['price']=data['price'].replace('?',b).astype(int)
+
+a=data[data['horsepower']!='?']
+b=(a['horsepower'].astype(int)).mean()
+data['horsepower']=data['horsepower'].replace('?',b).astype(int)
+
+a=data[data['bore']!='?']
+b=(a['bore'].astype(float)).mean()
+data['bore']=data['bore'].replace('?',b).astype(float)
+
+a=data[data['stroke']!='?']
+b=(a['stroke'].astype(float)).mean()
+data['stroke']=data['stroke'].replace('?',b).astype(float)
+
+a=data[data['peak-rpm']!='?']
+b=(a['peak-rpm'].astype(float)).mean()
+data['peak-rpm']=data['peak-rpm'].replace('?',b).astype(float)
+
+a=data['num-of-cylinders'].map({'four':4,'five':5,'six':6,'?':4})
+data['num-of-doors']=a
+
+#painted a prediction the price based on the below characteristics 
+
+data[['engine-size','peak-rpm','curb-weight','horsepower','price','highway-mpg']].hist(figsize=(10,8),bins=50,color='b',linewidth='3',edgecolor='k')
+plt.tight_layout()
+plt.show()
+
+final_data = data[['engine-size', 'price']]
+predictor = data['engine-size']
+target = data['price']
+
+reg = LinearRegression()
+predictor = np.array(predictor).reshape((-1, 1))
+reg = reg.fit(predictor, target)
+
+# calculated the prediction's accuracy
+
+Y_pred = reg.predict(predictor)
+accuracy_score = reg.score(predictor, target)
+print(accuracy_score)
